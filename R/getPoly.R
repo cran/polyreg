@@ -16,13 +16,10 @@ getPoly <- function(xdata = NULL, deg = 1, maxInteractDeg = deg,
   
 
   W <- if(is.null(xdata)) Xy else xdata
-  if(!(is.matrix(W) || is.data.frame(W))){
-    if(noisy) message("getPoly() expects a matrix or a data.frame. The input will be coerced to a data.frame but you may wish to stop and provide one directly.\n\n")
-    if(is.numeric(W))
-      W <- data.frame(t(W)) # really a guess that vectors are meant to be rows
-  }else{
-    W <- if(is.null(xdata)) as.data.frame(W) else as.data.frame(W)
+  if(noisy && !(is.matrix(W) || is.data.frame(W))){
+    message("getPoly() expects a matrix or a data.frame. The input will be coerced to a data.frame but you may wish to stop and provide one directly.\n\n")
   }
+  W <- as.data.frame(W, stringsAsFactors=TRUE)
   
   if(standardize){
     to_z <- which(unlist(lapply(W, is_continuous)))
@@ -104,6 +101,7 @@ getPoly <- function(xdata = NULL, deg = 1, maxInteractDeg = deg,
   }
   
   X <- model_matrix(modelFormula, W, intercept, noisy, ...)
+  if (!is.matrix(X)) X <- matrix(X,ncol=1)
   
   if(is.null(retainedNames))
     retainedNames <- colnames(X)
@@ -141,7 +139,7 @@ polyMatrix <- function(xdata, modelFormula, XtestFormula, retainedNames){
 polyDF <- function(polyMat){
 
   stopifnot(class(polyMat) == "polyMatrix")
-  polyMat$xdata <- as.data.frame(polyMat$xdata)
+  polyMat$xdata <- as.data.frame(polyMat$xdata, stringsAsFactors=polyMat$stringsAsFactors)
   if(length(polyMat$retainedNames) != length(colnames(polyMat$xdata))){
     warning("xdata contains", length(colnames(polyMat$xdata)), 
         "columns but retainedNames has", length(polyMat$retainedNames), "items")
@@ -171,8 +169,8 @@ polyDF <- function(polyMat){
 #  return (polyMatrix(xd, res[[1]]$endCols))
 #}
 
-polyAllVsAll <- function(plm.xy, classes){
-  plm.xy <- as.data.frame(plm.xy)
+polyAllVsAll <- function(plm.xy, classes, stringsAsFactors=TRUE){
+  plm.xy <- as.data.frame(plm.xy, stringsAsFactors=TRUE)
   len <- length(classes)
   ft <- list()
   for (i in 1:len) {
@@ -188,8 +186,8 @@ polyAllVsAll <- function(plm.xy, classes){
   return(ft)
 }
 
-polyOneVsAll <- function(plm.xy, classes,cls=NULL) {
-  plm.xy <- as.data.frame(plm.xy)
+polyOneVsAll <- function(plm.xy, classes, cls=NULL) {
+  plm.xy <- as.data.frame(plm.xy, stringsAsFactors=TRUE)
   ft <- list()
   predClassi <- function(i)
   {

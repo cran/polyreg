@@ -19,17 +19,17 @@ getPoly(xdata = NULL, deg = 1, maxInteractDeg = deg,
 
 
 \arguments{
-  \item{xdata}{Data matrix or data frame without response variable. Categorical variables (> 2 levels) should be passed as factors, not dummy variables or integers, to ensure the polynomial matrix is constructed properly.}
-  \item{deg}{The max degree of power terms. Default 1 so just returns model matrix by default.}
+  \item{xdata}{ Data matrix or data frame without response variable. Categorical variables (> 2 levels) should be passed as factors, not dummy variables or integers, to ensure the polynomial matrix is constructed properly.}
+  \item{deg}{ The max degree of power terms. Default 1 so just returns model matrix by default.}
   \item{maxInteractDeg}{The max degree of nondummy interaction terms. x1 * x2 is degree 2. x1^3 * x2^2 is degree 5. Implicitly constrained by deg. For example, if deg = 3 and maxInteractDegree = 2, x1^1 * x2^2 (i.e., degree 3) will be included but x1^2 * x2^2 (i.e., degree 4) will not.}
-  \item{Xy}{ the dataframe with the response in the final column (provide xdata or Xy but not both).Categorical variables (> 2 levels) should be passed as factors, not dummy variables or integers, to ensure the polynomial matrix is constructed properly.}
-  \item{standardize}{ standardize all continuous variables? (Default: FALSE.)}
-  \item{noisy}{Output progress updates? (Default: TRUE.)}
-  \item{intercept}{Include intercept? (Default: FALSE.)}
-  \item{returnDF}{Return a data.frame (as opposed to model.matrix)? (Default: TRUE.)}
+  \item{Xy}{ The dataframe with the response in the final column (provide xdata or Xy but not both).Categorical variables (> 2 levels) should be passed as factors, not dummy variables or integers, to ensure the polynomial matrix is constructed properly.}
+  \item{standardize}{ Standardize all continuous variables? (Default: FALSE.)}
+  \item{noisy}{ Output progress updates? (Default: TRUE.)}
+  \item{intercept}{ Include intercept? (Default: FALSE.)}
+  \item{returnDF}{ Return a data.frame (as opposed to model.matrix)? (Default: TRUE.)}
   \item{modelFormula}{ Internal use. Formula used to generate the training model matrix. Note: anticipates that polynomial terms are generated using internal functions of library(polyreg). Also, providing modelFormula bypasses deg and maxInteractDeg.}
   \item{retainedNames}{ Internal use. colnames of polyMatrix object$xdata. Requires modelFormula be inputted as well.}
-  \item{...}{ additional arguments to be passed to model.matrix() via polyreg:::model_matrix(). Note na.action = "na.omit".}
+  \item{...}{ Additional arguments to be passed to model.matrix() via polyreg:::model_matrix(). Note na.action = "na.omit".}
 }
 
 \details{
@@ -104,13 +104,6 @@ ncol(getPoly(Xy=rawdata, deg=2)$xdata) < ncol(getPoly(rawdata, 2)$xdata)
 # which should be used to ensure factors are handled correctly out-of-sample
 Xtrain <- getPoly(rawdata[1:100,],2)
 Xtest <- getPoly(rawdata[101:125,], 2, modelFormula = Xtrain$XtestFormula)
-    
-# additional spot checks
-stopifnot(ncol(getPoly(rawdata, 1, 1)$xdata) == P)
-stopifnot(ncol(getPoly(rawdata, 1, 1, returnDF = FALSE)$xdata) == P)
-stopifnot(length(getPoly(rawdata, 1, 1)$retainedNames) == P)    
-stopifnot(identical(colnames(Xtrain), colnames(Xtest)))
-
 
 }
 
