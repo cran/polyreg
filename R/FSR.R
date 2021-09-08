@@ -25,6 +25,7 @@ FSR <- function(Xy,
 
   if(!is.matrix(Xy) && !is.data.frame(Xy))
     stop("Xy must be a matrix or data.frame. Either way, y must be the final column.")
+  Xy <- complete(Xy)
   if(pTraining <= 0 || pTraining > 1)
     stop("pTraining should all be between 0 and 1.")
   pValidation <- 1 - pTraining
@@ -280,7 +281,7 @@ FSR <- function(Xy,
         } # end logit
       } # end fit, etc.
 
-      out$models$estimated[m] <- complete(out[[mod(m)]][["coeffs"]])
+      out$models$estimated[m] <- complete_vector(out[[mod(m)]][["coeffs"]])
 
       if(out$noisy)
         summary(out, estimation_overview = FALSE, results_overview = FALSE, model_number = m)

@@ -1,6 +1,6 @@
 Package: polyreg
 Title: Polynomial Regression
-Version: 0.6.7
+Version: 0.6.9
 Authors@R: c(person("Norm", "Matloff", email = "matloff@cs.ucdavis.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9179-6785")),
            person("Xi", "Cheng", email = "xicheng0821@gmail.com", role = c("aut")),
            person("Pete", "Mohanty", email = "pmohanty@stanford.edu", role = c("aut"), comment = c(ORCID = "0000-0001-8531-3345")),
@@ -14,15 +14,13 @@ Maintainer: Norm Matloff <matloff@cs.ucdavis.edu>
 Description: Automate formation and evaluation of polynomial regression models. The motivation for this package is described in 'Polynomial Regression As an Alternative to Neural Nets' by Xi Cheng, Bohdan Khomtchouk, Norman Matloff, and Pete Mohanty (<arXiv:1806.06850>).
 License: GPL (>= 2)
 Encoding: UTF-8
-LazyData: true
-Depends:
+Depends: R (>= 3.5)
 URL: https://github.com/matloff/polyreg
 BugReports: https://github.com/matloff/polyreg/issues
 RoxygenNote: 6.0.1
-Imports: nnet,dummies, parallel, partools, regtools, RSpectra, stats,
-        utils
+Imports: nnet,dummies, parallel, partools, RSpectra, stats, utils
 NeedsCompilation: no
-Packaged: 2020-04-04 20:17:13 UTC; pete
+Packaged: 2021-09-08 03:22:38 UTC; normanmatloff
 Author: Norm Matloff [aut, cre] (<https://orcid.org/0000-0001-9179-6785>),
   Xi Cheng [aut],
   Pete Mohanty [aut] (<https://orcid.org/0000-0001-8531-3345>),
@@ -33,4 +31,4 @@ Author: Norm Matloff [aut, cre] (<https://orcid.org/0000-0001-9179-6785>),
   Allan Zhao [aut],
   Tiffany Jiang [aut]
 Repository: CRAN
-Date/Publication: 2020-04-04 20:40:03 UTC
+Date/Publication: 2021-09-08 05:20:07 UTC

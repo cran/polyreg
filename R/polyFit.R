@@ -43,9 +43,14 @@ polyFit <- function(xy, deg, maxInteractDeg=deg, use = "lm", pcaMethod=NULL,
 
   if (!use %in% c('lm','glm','mvrlm'))
      stop('"use" must be "lm", "glm", or "mvrlm"')
+ 
+  nOrigFeatures <- ncol(xy) - 1
+  namesOrigFeatures <- colnames(xy[,1:nOrigFeatures,drop=FALSE])
 
+  xy <- complete(xy, noisy=noisy)
+  
   doPCA <- !is.null(pcaMethod)
-  xdata <- xy[,-ncol(xy)]
+  xdata <- xy[,-ncol(xy),drop=FALSE]
 
   y <- xy[,ncol(xy)]
   if(is.character(y))
@@ -83,7 +88,7 @@ polyFit <- function(xy, deg, maxInteractDeg=deg, use = "lm", pcaMethod=NULL,
       tmp <- system.time(pMat <- getPoly(xdata, deg, maxInteractDeg))
       if(noisy) message('getPoly time: ', max(tmp),'\n\n')
       polyMat <- pMat$xdata
-   #   retainedNames <- pMat$retainedNames
+    #   retainedNames <- pMat$retainedNames
       applyPCAOutputs <- applyPCA(polyMat,pcaMethod,pcaPortion)
       polyMat <- applyPCAOutputs$xdata
 
@@ -95,9 +100,8 @@ polyFit <- function(xy, deg, maxInteractDeg=deg, use = "lm", pcaMethod=NULL,
      xy.pca <- NULL
      k <- 0
      tmp <- system.time(pMat <- getPoly(xdata, deg, maxInteractDeg))
-     if(noisy) message('getPoly time: ', max(tmp),'\n\n')
+     if(noisy) message('getPoly time: ', max(tmp, na.rm = TRUE),'\n\n')
      polyMat <- pMat$xdata
-  #   retainedNames <- pMat$retainedNames
   }
   retainedNames <- pMat$retainedNames
   modelFormula <- pMat$modelFormula
@@ -116,33 +120,35 @@ polyFit <- function(xy, deg, maxInteractDeg=deg, use = "lm", pcaMethod=NULL,
     tmp <- system.time(
        ft <- lm(y~., data = plm.xy)
     )
-    if(noisy) message('lm() time: ', max(tmp),'\n\n')
+    if(noisy) message('lm() time: ', max(tmp, na.rm=TRUE),'\n\n')
     glmMethod <- NULL
   } else if (use == "glm" || use == 'mvrlm') {
        classes <- unique(y)  # see preprocessing of y, start of this ftn
        if (use == 'glm') {
           if (length(classes) == 2) {
-            # plm.xy$y <- as.numeric(ifelse(plm.xy$y == classes[1], 1, 0))
             plm.xy$y <- as.numeric(plm.xy$y == classes[1])
             tmp <- system.time(ft <- glm(y~., family = binomial,data = plm.xy))
-            if(noisy) message('2-class glm() time: ', max(tmp),'\n\n')
+            if(noisy) 
+              message('2-class glm() time: ', max(tmp, na.rm = TRUE),'\n\n')
             glmMethod <- NULL
           }  # end 2-class case
           else { # more than two classes
             if (glmMethod == "all") { # all-vs-all
               tmp <- system.time(ft <- polyAllVsAll(plm.xy, classes))
-              if(noisy) message('all-vs-all glm() time: ', max(tmp),'\n\n')
+              if(noisy) 
+                message('all-vs-all glm() time: ', max(tmp,na.rm=TRUE),'\n\n')
             } else if (glmMethod == "one") { # one-vs-all
               tmp <- system.time(
                  ft <- polyOneVsAll(plm.xy, classes) # cls could be passed here
               )
-              if(noisy) message('one-vs-all glm() time: ', max(tmp),'\n\n')
+              glmOuts <- ft
+              if(noisy) 
+                 message('one-vs-all glm() time: ', max(tmp,na.rm=TRUE),'\n\n')
             } else if (glmMethod == "multlog") { # multinomial logistics
-               #requireNamespace(nnet)
               tmp <- system.time(
               ft <- multinom(y~., plm.xy)
               )
-              if(noisy) message('multlog time: ', max(tmp), '\n')
+              if(noisy) message('multlog time: ', max(tmp, na.rm = TRUE), '\n')
             }
           } # more than two classes
       # end 'glm' case
@@ -164,6 +170,8 @@ polyFit <- function(xy, deg, maxInteractDeg=deg, use = "lm", pcaMethod=NULL,
 
   # create return value and wrap up
   pcaPrn <- if(doPCA) pcaPortion else 0
+
+  if (!exists('glmOuts')) glmOuts <- NULL
   
   me <- list(xy = if(return_xy) xy else NULL, 
              degree=deg, 
@@ -171,10 +179,17 @@ polyFit <- function(xy, deg, maxInteractDeg=deg, use = "lm", pcaMethod=NULL,
              use=use,
              poly.xy = if(returnPoly) plm.xy else NULL, 
              fit=ft, 
-             PCA=pcaMethod, pca.portion=pcaPrn, pca.xy=xy.pca, pcaCol=k, pcaLocation=pcaLocation, 
+             nOrigFeatures=nOrigFeatures,
+             namesOrigFeatures=namesOrigFeatures,
+             PCA=pcaMethod, pca.portion=pcaPrn, pca.xy=xy.pca, pcaCol=k, 
+                pcaLocation=pcaLocation, 
              glmMethod=glmMethod,
-             classProblem=classProblem, classes=classes, 
-             retainedNames=retainedNames, modelFormula=modelFormula, XtestFormula=XtestFormula)
+             classProblem=classProblem, 
+             classes=classes, 
+             retainedNames=retainedNames, 
+             modelFormula=modelFormula, 
+             XtestFormula=XtestFormula,
+             glmOuts=glmOuts)
   class(me) <- "polyFit"
   return(me)
 

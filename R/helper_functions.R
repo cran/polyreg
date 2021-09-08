@@ -16,12 +16,34 @@ toFactors <- function(df, cols)
 
 # the rest are not exported...
 
-N_distinct <- function(x) if(ncol(as.matrix(x)) == 1) length(unique(x)) else unlist(lapply(x, N_distinct))
+N_distinct <- function(x) 
+{
+   if(ncol(as.matrix(x)) == 1) length(unique(x)) 
+   else unlist(lapply(x, N_distinct))
+}
+
 #is_continuous <- function(x) if(is.numeric(x)) N_distict(x) > 2 else FALSE
-is_continuous <- function(x) unlist(lapply(x, is.numeric)) & N_distinct(x) > 2
+is_continuous <- function(x) 
+   unlist(lapply(x, is.numeric)) & N_distinct(x) > 2
+
 mod <- function(m) paste0("model", m)
-complete <- function(x) !is.null(x) && sum(is.na(x)) == 0
-match_arg <- function(arg, choices){if(is.null(arg)) arg else match.arg(arg, choices)}
+
+match_arg <- 
+   function(arg, choices){if(is.null(arg)) arg else match.arg(arg, choices)}
+
+complete_vector <- function(x) !is.null(x) && sum(is.na(x)) == 0
+
+complete <- function(xy, noisy=TRUE){
+  n_row <- nrow(xy)
+  # xy <- xy[complete.cases(xy),,drop=FALSE]
+  xy <- na.exclude(xy)
+  if (is.vector(xy)) xy <- matrix(xy,ncol=1)
+  n_raw <- nrow(xy)
+  # xy <- xy[complete.cases(xy),,drop=FALSE]
+  xy <- na.exclude(xy)
+  n <- nrow(xy)
+  return(xy)
+}
 
 
 model_matrix <- function(modelFormula, dataFrame, intercept, noisy=TRUE, ...){
@@ -34,7 +56,7 @@ model_matrix <- function(modelFormula, dataFrame, intercept, noisy=TRUE, ...){
       return(NULL)
       
     } else {
-      if(intercept) return(tried) else return(tried[,-1])
+      if(intercept) return(tried) else return(tried[,-1,drop=FALSE])
     }
   
 }
@@ -60,6 +82,8 @@ get_interactions <- function(features, maxInteractDeg,
   if(length(features) < maxInteractDeg)
     stop("too few x variables to obtain desired interaction degree.")
 
+  # interactions will initially be an R list, one element per
+  # interaction degree
   interactions <- list()
 
   if(length(features) > 1 && maxInteractDeg > 1){
@@ -69,7 +93,8 @@ get_interactions <- function(features, maxInteractDeg,
       combos <- combos[ , which_include(combos, may_not_repeat)]
 
       if(!is.null(maxDeg)) # drop combos for which sum of degrees > maxDeg
-        combos <- combos[,-which(colSums(apply(combos, 1:2, get_degree)) > maxDeg)]
+        combos <- 
+           combos[,-which(colSums(apply(combos, 1:2, get_degree)) > maxDeg)]
 
       interactions[[i]] <- apply(as.matrix(combos), 2, paste, collapse = " * ")
 
@@ -77,9 +102,12 @@ get_interactions <- function(features, maxInteractDeg,
   }
   interactions <- unlist(interactions)
 
-  if(include_features) return(c(features, interactions)) else return(interactions)
+  if(include_features) 
+     return(c(features, interactions)) else return(interactions)
 
 }
+
+gtInteractions <- get_interactions
 
 which_include <- function(combos, may_not_repeat){
 # prevents multiplication of mutually exclusive categorical variables' levels
@@ -364,7 +392,7 @@ ols <- function(object, Xy, m, train = TRUE, y = NULL, y_test = NULL){
 
         object[[mod(m)]][["coeffs"]] <- tcrossprod(XtX_inv, X) %*% y
 
-        if(complete(object[[mod(m)]][["coeffs"]])){
+        if(complete_vector(object[[mod(m)]][["coeffs"]])){
 
           object$models$estimated[m] <- TRUE
 
@@ -457,8 +485,10 @@ post_estimation <- function(object, Xy, m, y_test = NULL){
 
       object$models$accepted[m] <- TRUE
 
-      if(object$outcome == "continuous")
+      if(object$outcome == "continuous"){
+        object[['best_adjR2']] <- adjR2 
         object[["best_MAPE"]] <- MAPE
+      }
   }
   return(object)
 }
@@ -498,5 +528,6 @@ applyPCA <- function(x, pcaMethod, pcaPortion) {
   
   return(list(xdata=xdata,xy.pca=xy.pca,k=k))
 }
+
 
 

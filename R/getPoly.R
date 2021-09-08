@@ -9,17 +9,27 @@ getPoly <- function(xdata = NULL, deg = 1, maxInteractDeg = deg,
                     noisy = TRUE, intercept = FALSE, 
                     returnDF = TRUE, 
                     modelFormula = NULL, retainedNames = NULL,
-                    ...){
+                    ...)
+{
+
+  # maxInteractDeg <- maxInteractDeg + 1
 
   if(sum(is.null(xdata) + is.null(Xy)) != 1)
     stop("please provide getPoly() xdata or Xy (but not both).")
-  
+ 
+  if (!is.null(xdata) && is.vector(xdata))
+     stop('xdata must be a matrix or data frame')
 
   W <- if(is.null(xdata)) Xy else xdata
+  nX <- if(is.null(xdata)) ncol(Xy)-1 else ncol(xdata)  # NM, 11/13/2020
   if(noisy && !(is.matrix(W) || is.data.frame(W))){
-    message("getPoly() expects a matrix or a data.frame. The input will be coerced to a data.frame but you may wish to stop and provide one directly.\n\n")
+    cat('getPoly() expects a matrix or a data.frame.\n')
+    cat('The input will be coerced to a data.frame \n')
   }
   W <- as.data.frame(W, stringsAsFactors=TRUE)
+  namesW <- names(W)
+  W <- complete(W, noisy=noisy)
+  colnames(W) <- namesW
   
   if(standardize){
     to_z <- which(unlist(lapply(W, is_continuous)))
@@ -77,15 +87,16 @@ getPoly <- function(xdata = NULL, deg = 1, maxInteractDeg = deg,
       # P does not reflect intercept, interactions, or polynomial terms
       continuous_features <- c()
      for(i in 1:deg)
-       continuous_features <- c(continuous_features, paste0("I(", cf, "^", i, ")"))
+       continuous_features <- 
+          c(continuous_features, paste0("I(", cf, "^", i, ")"))
       # generate "I(x^1)", "I(x^2)", "I(x^3)", and so on
       # the string above will be used to make the appropriate formula
       # y ~ I(x^1) + I(x^2) + I(x^3)
       # "I(x^1)" is overkill but aids with debugging ... 
-      # browser()
       features <- c(continuous_features, factor_features)
-    }
+    } else cf <- NULL  # added by NM, 12/12/20
     
+    # if (ncol(W) > 1)
     features <- get_interactions(features, maxInteractDeg,
                                  c(cf, names(x_factors[x_factors])),
                                  maxDeg = deg)
@@ -99,9 +110,15 @@ getPoly <- function(xdata = NULL, deg = 1, maxInteractDeg = deg,
     # intercept handled by logical passed to model_matrix
     
   }
-  
+ 
+  ## if (ncol(W) == 1) names(W)[1] <- 'V1'  # bad kludge, NM, 11/12/20
   X <- model_matrix(modelFormula, W, intercept, noisy, ...)
-  if (!is.matrix(X)) X <- matrix(X,ncol=1)
+  # if (!is.matrix(X)) X <- matrix(X,ncol=nX)
+  if (is.vector(X)) {
+     nms <- names(X)
+     X <- matrix(X,nrow=nrow(W))
+     colnames(X) <- nms
+  }
   
   if(is.null(retainedNames))
     retainedNames <- colnames(X)
@@ -115,12 +132,15 @@ getPoly <- function(xdata = NULL, deg = 1, maxInteractDeg = deg,
 
 }
 
+gtPoly <- getPoly
+
 ##################################################################
 # polyMatrix: the class of polyMatrix from getPoly
 ##################################################################
 # helper function so that getPoly() can also be called in parallel
 # make polyMatrix <- function(...) so that it can be more flexible?
-polyMatrix <- function(xdata, modelFormula, XtestFormula, retainedNames){
+polyMatrix <- function(xdata, modelFormula, XtestFormula, retainedNames)
+{
   
   if(!is.matrix(xdata)){
     xdata <- matrix(t(xdata), nrow=1)
@@ -136,7 +156,8 @@ polyMatrix <- function(xdata, modelFormula, XtestFormula, retainedNames){
 }
 
 # helper function to coerce a polyMatrix to a polyDataFrame
-polyDF <- function(polyMat){
+polyDF <- function(polyMat)
+{
 
   stopifnot(class(polyMat) == "polyMatrix")
   polyMat$xdata <- as.data.frame(polyMat$xdata, stringsAsFactors=polyMat$stringsAsFactors)
@@ -169,7 +190,8 @@ polyDF <- function(polyMat){
 #  return (polyMatrix(xd, res[[1]]$endCols))
 #}
 
-polyAllVsAll <- function(plm.xy, classes, stringsAsFactors=TRUE){
+polyAllVsAll <- function(plm.xy, classes, stringsAsFactors=TRUE)
+{
   plm.xy <- as.data.frame(plm.xy, stringsAsFactors=TRUE)
   len <- length(classes)
   ft <- list()
@@ -186,7 +208,8 @@ polyAllVsAll <- function(plm.xy, classes, stringsAsFactors=TRUE){
   return(ft)
 }
 
-polyOneVsAll <- function(plm.xy, classes, cls=NULL) {
+polyOneVsAll <- function(plm.xy, classes, cls=NULL) 
+{
   plm.xy <- as.data.frame(plm.xy, stringsAsFactors=TRUE)
   ft <- list()
   predClassi <- function(i)
@@ -214,4 +237,3 @@ polyOneVsAll <- function(plm.xy, classes, cls=NULL) {
   }
   return(ft)
 }
-
