@@ -2,7 +2,7 @@
 
 ---
 title: 'polyreg'
-author: "Cheng, Matloff, Mohanty, Zhao etc."
+author: "Matloff, Mohanty"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >

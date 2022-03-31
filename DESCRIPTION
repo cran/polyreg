@@ -1,6 +1,6 @@
 Package: polyreg
 Title: Polynomial Regression
-Version: 0.7.0
+Version: 0.8.0
 Authors@R: c(person("Norm", "Matloff", email = "matloff@cs.ucdavis.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9179-6785")),
            person("Xi", "Cheng", email = "xicheng0821@gmail.com", role = c("aut")),
            person("Pete", "Mohanty", email = "pmohanty@stanford.edu", role = c("aut"), comment = c(ORCID = "0000-0001-8531-3345")),
@@ -21,9 +21,9 @@ VignetteBuilder: knitr
 URL: https://github.com/matloff/polyreg
 BugReports: https://github.com/matloff/polyreg/issues
 RoxygenNote: 6.0.1
-Imports: nnet,dummies, parallel, stats, utils
+Imports: nnet,parallel, stats, utils
 NeedsCompilation: no
-Packaged: 2021-11-22 03:25:16 UTC; matloff
+Packaged: 2022-03-30 22:15:11 UTC; normanmatloff
 Author: Norm Matloff [aut, cre] (<https://orcid.org/0000-0001-9179-6785>),
   Xi Cheng [aut],
   Pete Mohanty [aut] (<https://orcid.org/0000-0001-8531-3345>),
@@ -34,4 +34,4 @@ Author: Norm Matloff [aut, cre] (<https://orcid.org/0000-0001-9179-6785>),
   Allan Zhao [aut],
   Tiffany Jiang [aut]
 Repository: CRAN
-Date/Publication: 2021-11-22 05:30:02 UTC
+Date/Publication: 2022-03-31 07:50:02 UTC
